@@ -616,7 +616,7 @@ export function MainPage() {
   const handleMeetFruity = () => {
     lastSpokenRef.current = null;
     const message =
-      "Hi Ellie, my name is Trudy Fruity! Math is fun! Let me help you with your times tables. Click any one of the fruits you see next to me or at the top of the page to get started.";
+      "Hi Ellie! My name is Trudy Fruity! Math is FUN! I am so excited to help you with your times tables! Click any one of the fruits you see next to me, or at the top of the page, to get started!";
     if (fruityTimerRef.current) {
       clearInterval(fruityTimerRef.current);
       fruityTimerRef.current = null;
@@ -658,12 +658,16 @@ export function MainPage() {
     const isIOS =
       typeof navigator !== "undefined" &&
       /iPad|iPhone|iPod/i.test(navigator.userAgent);
+    const isChromeIOS =
+      isIOS &&
+      typeof navigator !== "undefined" &&
+      /CriOS/i.test(navigator.userAgent);
 
     const words = message.split(" ");
     window.speechSynthesis.cancel();
     const voice = pickYoungFemaleVoice();
 
-    if (isIOS) {
+    if (isIOS && !isChromeIOS) {
       const chunkSize = 4;
       let wordIndex = 0;
       const speakChunk = () => {
@@ -677,8 +681,8 @@ export function MainPage() {
         if (voice) {
           utterance.voice = voice;
         }
-        utterance.rate = 0.95;
-        utterance.pitch = 1.25;
+        utterance.rate = 1.02;
+        utterance.pitch = 1.35;
         utterance.onstart = () => {
           if (fruityTimerRef.current) {
             clearInterval(fruityTimerRef.current);
@@ -716,10 +720,15 @@ export function MainPage() {
     if (voice) {
       utterance.voice = voice;
     }
-    utterance.rate = 0.95;
-    utterance.pitch = 1.25;
+    utterance.rate = 1.02;
+    utterance.pitch = 1.35;
+    const useAnimatedSpeechProgress = !isChromeIOS;
     let hasBoundary = false;
     utterance.onstart = () => {
+      if (!useAnimatedSpeechProgress) {
+        setFruitySpeech(message);
+        return;
+      }
       setFruitySpeech(words[0] ?? "");
       let index = 1;
       const baseInterval = Math.round(240 / utterance.rate);
@@ -742,6 +751,9 @@ export function MainPage() {
       }, baseInterval);
     };
     utterance.onboundary = (event) => {
+      if (!useAnimatedSpeechProgress) {
+        return;
+      }
       if (event.name !== "word") {
         return;
       }
