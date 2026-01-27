@@ -1541,7 +1541,13 @@ body {
 
 @media (max-height: 800px) {
   .overlay-table {
-    transform: scale(0.9);
+    transform: scale(0.84);
+  }
+}
+
+@media (max-height: 950px) {
+  .overlay-table {
+    transform: scale(0.86);
   }
 }
 .fruit-icon {
