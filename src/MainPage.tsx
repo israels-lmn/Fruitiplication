@@ -349,6 +349,17 @@ export function MainPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof navigator === "undefined" || typeof document === "undefined") {
+      return;
+    }
+    const isChromeIOS = /CriOS/i.test(navigator.userAgent);
+    document.body.classList.toggle("is-chrome-ios", isChromeIOS);
+    return () => {
+      document.body.classList.remove("is-chrome-ios");
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof document === "undefined") {
       return;
     }

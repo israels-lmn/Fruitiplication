@@ -1687,6 +1687,20 @@ body {
   }
 }
 
+@media (orientation: landscape) and (max-height: 950px) {
+  body.is-chrome-ios .overlay-table {
+    --fruit-size: 30px;
+    --fruit-gap: 3px;
+    transform: scale(0.78);
+  }
+
+  body.is-chrome-ios .table-overlay .row {
+    font-size: 1.24rem;
+    padding: 4px 0;
+    gap: 6px;
+  }
+}
+
 @media (max-width: 1024px) and (orientation: portrait) {
   .overlay-table {
     --fruit-size: 38px;
