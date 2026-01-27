@@ -616,7 +616,9 @@ export function MainPage() {
   const handleMeetFruity = () => {
     lastSpokenRef.current = null;
     const message =
-      "Hi Ellie! My name is Trudy Fruity! Math is FUN! I am so excited to help you with your times tables! Click any one of the fruits you see next to me, or at the top of the page, to get started!";
+      "Hi Ellie! My name is Trudy Fruity! Math is FUN! I am so excited to help you with your times tables! To get started, click any one of the fruits you see next to me, or at the top of the page!";
+    const greeting = "Hi Ellie!";
+    const restMessage = message.replace(/^Hi Ellie!\s*/u, "");
     if (fruityTimerRef.current) {
       clearInterval(fruityTimerRef.current);
       fruityTimerRef.current = null;
@@ -664,6 +666,7 @@ export function MainPage() {
       /CriOS/i.test(navigator.userAgent);
 
     const words = message.split(" ");
+    const restWords = restMessage.split(" ");
     window.speechSynthesis.cancel();
     const voice = pickYoungFemaleVoice();
 
@@ -730,6 +733,50 @@ export function MainPage() {
         fruityTimerRef.current = null;
       }
       if (progressMode === "timed") {
+        if (isChromeIOS) {
+          const greetingUtterance = new SpeechSynthesisUtterance(greeting);
+          if (voice) {
+            greetingUtterance.voice = voice;
+          }
+          greetingUtterance.rate = 1.15;
+          greetingUtterance.pitch = 1.55;
+          greetingUtterance.onstart = () => {
+            setFruitySpeech(greeting);
+          };
+          greetingUtterance.onend = () => {
+            const restUtterance = new SpeechSynthesisUtterance(restMessage);
+            if (voice) {
+              restUtterance.voice = voice;
+            }
+            restUtterance.rate = utterance.rate;
+            restUtterance.pitch = utterance.pitch;
+            restUtterance.onstart = () => {
+              setFruitySpeech(
+                restWords.length ? `${greeting} ${restWords[0]}` : greeting
+              );
+              let index = 1;
+              const baseInterval = Math.max(
+                320,
+                Math.round(360 / restUtterance.rate)
+              );
+              fruityTimerRef.current = setInterval(() => {
+                const spokenRest = restWords.slice(0, index + 1).join(" ");
+                setFruitySpeech(spokenRest ? `${greeting} ${spokenRest}` : greeting);
+                index += 1;
+                if (index >= restWords.length) {
+                  if (fruityTimerRef.current) {
+                    clearInterval(fruityTimerRef.current);
+                    fruityTimerRef.current = null;
+                  }
+                }
+              }, baseInterval);
+            };
+            restUtterance.onend = utterance.onend ?? null;
+            window.speechSynthesis.speak(restUtterance);
+          };
+          window.speechSynthesis.speak(greetingUtterance);
+          return;
+        }
         setFruitySpeech(words[0] ?? "");
         let index = 1;
         const baseInterval = Math.max(320, Math.round(360 / utterance.rate));

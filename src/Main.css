@@ -1675,15 +1675,15 @@ body {
 
 @media (orientation: landscape) and (max-height: 950px) {
   .overlay-table {
-    --fruit-size: 30px;
-    --fruit-gap: 3px;
-    transform: scale(0.78);
+    --fruit-size: 31px;
+    --fruit-gap: 4px;
+    transform: scale(0.8);
   }
 
   .table-overlay .row {
-    font-size: 1.22rem;
-    padding: 4px 0;
-    gap: 6px;
+    font-size: 1.28rem;
+    padding: 5px 0;
+    gap: 7px;
   }
 }
 
