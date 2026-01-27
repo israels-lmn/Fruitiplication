@@ -1155,7 +1155,7 @@ export function MainPage() {
                 key={count}
                 className={`fruit ${fruit.className} ${
                   fruit.label ? "label" : ""
-                }`}
+                } ${isCompleteRow ? "revealed" : ""}`}
                 style={
                   fruit.labelColor
                     ? ({ "--label-color": fruit.labelColor } as React.CSSProperties)
@@ -1164,6 +1164,7 @@ export function MainPage() {
                 aria-label={fruit.name}
               >
                 <span className="fruit-icon">{fruit.icon ?? fruit.label}</span>
+                <span className="fruit-number">{count + 1}</span>
               </span>
             ))}
           </div>
