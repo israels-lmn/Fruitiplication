@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import "./Main.css";
 
 type Fruit = {
@@ -94,7 +95,7 @@ const fruits: Fruit[] = [
     color: "#f2a146",
     softColor: "rgba(242, 161, 70, 0.2)",
     tooltipTextColor: "#2b1b00",
-    labelColor: "#5b3a00",
+    labelColor: "#1e3a8a",
     icon: "\uD83C\uDF4A"
   },
   {
@@ -128,7 +129,7 @@ const fruits: Fruit[] = [
     color: "#f2c33c",
     softColor: "rgba(242, 195, 60, 0.2)",
     tooltipTextColor: "#2b1b00",
-    labelColor: "#3f2600",
+    labelColor: "#1e3a8a",
     icon: "\u2B50"
   },
   {
@@ -146,7 +147,7 @@ const fruits: Fruit[] = [
     color: "#f2ad6a",
     softColor: "rgba(242, 173, 106, 0.22)",
     tooltipTextColor: "#2b1b00",
-    labelColor: "#5b3a00",
+    labelColor: "#1e3a8a",
     icon: "\uD83C\uDF4F"
   },
   {
@@ -156,7 +157,7 @@ const fruits: Fruit[] = [
     color: "#f2a347",
     softColor: "rgba(242, 163, 71, 0.22)",
     tooltipTextColor: "#2b1b00",
-    labelColor: "#5b3a00",
+    labelColor: "#1e3a8a",
     icon: "\uD83D\uDFE0"
   }
 ];
@@ -197,6 +198,8 @@ export function MainPage() {
   const [shuffledOptions, setShuffledOptions] = useState<number[]>([]);
   const [optionsKey, setOptionsKey] = useState(0);
   const [showOptions, setShowOptions] = useState(false);
+  const [externalMenuActive, setExternalMenuActive] = useState(false);
+  const [externalOptions, setExternalOptions] = useState<number[]>([]);
   const [swapOrder, setSwapOrder] = useState(false);
   const [closeFlash, setCloseFlash] = useState(false);
   const [fruitySpeech, setFruitySpeech] = useState("");
@@ -212,15 +215,80 @@ export function MainPage() {
   const [equalsSpokenByTable, setEqualsSpokenByTable] = useState<
     Record<number, number>
   >({});
+  const [optionsMenuStyle, setOptionsMenuStyle] = useState<
+    React.CSSProperties | undefined
+  >(undefined);
+  const [externalMenuStyle, setExternalMenuStyle] = useState<
+    React.CSSProperties | undefined
+  >(undefined);
   const lastSpokenRef = useRef<string | null>(null);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const revealTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fruityTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const answerEntryRef = useRef<HTMLDivElement | null>(null);
+  const optionsMenuRef = useRef<HTMLDivElement | null>(null);
+  const singleRowMenuActiveRef = useRef(false);
+  const activeTableRef = useRef<number | null>(null);
+  const currentRowRef = useRef(1);
+  const lastOptionsOpenRef = useRef(0);
+  const externalMenuActiveRef = useRef(false);
+  const showOptionsRef = useRef(false);
 
   const activeFruit = fruits.find((fruit) => fruit.value === activeTable) ?? null;
+  const activeFruitIndex =
+    activeTable === null ? -1 : fruits.findIndex((fruit) => fruit.value === activeTable);
+  const previousFruitValue =
+    activeFruitIndex === -1
+      ? null
+      : fruits[(activeFruitIndex - 1 + fruits.length) % fruits.length].value;
+  const nextFruitValue =
+    activeFruitIndex === -1 ? null : fruits[(activeFruitIndex + 1) % fruits.length].value;
   const isComplete = currentRow > 10;
+  const singleRowMenuActive =
+    showOptions && activeTable !== null && activeTable >= 4 && currentRow >= 9;
+  const shouldShowExternalMenu =
+    mode === "practice" &&
+    showOptions &&
+    activeFruit !== null &&
+    activeFruit.value >= 4 &&
+    currentRow >= 9;
+  const externalOptionsForActiveRow =
+    shouldShowExternalMenu && activeFruit
+      ? shuffledOptions.length
+        ? shuffledOptions
+        : Array.from(
+            { length: activeFruit.value + 1 },
+            (_, optionIndex) => (currentRow - 1) * activeFruit.value + optionIndex
+          )
+      : [];
+  const externalMenuPortal =
+    shouldShowExternalMenu &&
+    externalOptionsForActiveRow.length &&
+    typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="options-menu options-menu--single-row options-menu--external"
+            style={externalMenuStyle}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {externalOptionsForActiveRow.map((option) => (
+              <button
+                key={`${option}-${optionsKey}-external`}
+                type="button"
+                className="options-item"
+                onClick={() => {
+                  applyAnswerInput(String(option), currentRow, activeFruit.value);
+                  setShowOptions(false);
+                }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )
+      : null;
   const positiveMessages = [
     "Correct!",
     "Right!",
@@ -229,30 +297,155 @@ export function MainPage() {
   ];
 
   useEffect(() => {
+    singleRowMenuActiveRef.current = singleRowMenuActive;
+  }, [singleRowMenuActive]);
+
+  useEffect(() => {
+    externalMenuActiveRef.current = externalMenuActive;
+  }, [externalMenuActive]);
+
+  useEffect(() => {
+    activeTableRef.current = activeTable;
+  }, [activeTable]);
+
+  useEffect(() => {
+    currentRowRef.current = currentRow;
+  }, [currentRow]);
+
+  useEffect(() => {
+    showOptionsRef.current = showOptions;
+  }, [showOptions]);
+
+  useEffect(() => {
     if (activeTable !== null) {
       inputRef.current?.focus();
     }
   }, [activeTable, currentRow]);
 
   useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    if (activeFruit) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [activeFruit]);
+
+  useEffect(() => {
     setShowOptions(false);
+    setExternalMenuActive(false);
+    setExternalOptions([]);
   }, [activeTable, currentRow, mode]);
 
   useEffect(() => {
+    if (!showOptions || typeof window === "undefined") {
+      return;
+    }
+
+    const margin = 12;
+    const menuOffset = 8;
+
+    const updateMaxWidth = () => {
+      const entryRect = answerEntryRef.current?.getBoundingClientRect();
+      if (!entryRect) {
+        setOptionsMenuStyle(undefined);
+        setExternalMenuStyle(undefined);
+        return;
+      }
+      if (singleRowMenuActive) {
+        const availableWidth = Math.floor(window.innerWidth - margin * 2);
+        const estimatedHeight = optionsMenuRef.current?.offsetHeight ?? 64;
+        const desiredTop = entryRect.bottom + menuOffset;
+        const maxTop = window.innerHeight - estimatedHeight - margin;
+        const clampedTop = Math.max(margin, Math.min(desiredTop, maxTop));
+        const top = Math.floor(clampedTop);
+        const left = Math.floor(window.innerWidth / 2);
+        setOptionsMenuStyle(
+          availableWidth > 0
+            ? {
+                position: "fixed",
+                top: `${top}px`,
+                left: `${left}px`,
+                transform: "translateX(-50%)",
+                maxWidth: `${availableWidth}px`
+              }
+            : undefined
+        );
+        if (shouldShowExternalMenu) {
+          setExternalMenuStyle(
+            availableWidth > 0
+              ? {
+                  position: "fixed",
+                  left: `${left}px`,
+                  transform: "translateX(-50%)",
+                  maxWidth: `${availableWidth}px`,
+                  top: `${top}px`,
+                  bottom: "auto"
+                }
+              : undefined
+          );
+        } else {
+          setExternalMenuStyle(undefined);
+        }
+        return;
+      }
+      const availableWidth = Math.floor(window.innerWidth - entryRect.left - margin);
+      setOptionsMenuStyle(
+        availableWidth > 0 ? { maxWidth: `${availableWidth}px` } : undefined
+      );
+      setExternalMenuStyle(undefined);
+    };
+
+    const rafId = window.requestAnimationFrame(updateMaxWidth);
+    window.addEventListener("resize", updateMaxWidth);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", updateMaxWidth);
+    };
+  }, [showOptions, optionsKey, singleRowMenuActive, shouldShowExternalMenu]);
+
+  useEffect(() => {
     const handleOutside = (event: MouseEvent | TouchEvent) => {
+      // Disable outside-close while the menu is open to avoid race conditions.
+      if (showOptionsRef.current) {
+        return;
+      }
+      // Ignore the click/tap that just opened the menu.
+      if (Date.now() - lastOptionsOpenRef.current < 250) {
+        return;
+      }
+      const isRowTenSingleRowMenu =
+        activeTableRef.current !== null &&
+        activeTableRef.current >= 4 &&
+        currentRowRef.current >= 9;
+      // For 9 x n and 10 x n, never auto-close on outside clicks.
+      if (
+        isRowTenSingleRowMenu ||
+        singleRowMenuActiveRef.current ||
+        externalMenuActiveRef.current
+      ) {
+        return;
+      }
       const target = event.target;
       if (!(target instanceof Node)) {
         return;
       }
-      if (!answerEntryRef.current?.contains(target)) {
+      const clickedInsideEntry = answerEntryRef.current?.contains(target);
+      const clickedInsideMenu = optionsMenuRef.current?.contains(target);
+      if (!clickedInsideEntry && !clickedInsideMenu) {
         setShowOptions(false);
       }
     };
-    document.addEventListener("mousedown", handleOutside);
-    document.addEventListener("touchstart", handleOutside);
+    document.addEventListener("click", handleOutside);
+    document.addEventListener("touchend", handleOutside);
     return () => {
-      document.removeEventListener("mousedown", handleOutside);
-      document.removeEventListener("touchstart", handleOutside);
+      document.removeEventListener("click", handleOutside);
+      document.removeEventListener("touchend", handleOutside);
     };
   }, []);
 
@@ -371,12 +564,26 @@ export function MainPage() {
       { length: rangeEnd - rangeStart + 1 },
       (_, optionIndex) => rangeStart + optionIndex
     );
-    setShuffledOptions(shuffleOptions(options));
+    const shuffled = shuffleOptions(options);
+    setShuffledOptions(shuffled);
     setOptionsKey((prev) => prev + 1);
+    return shuffled;
   };
 
   const openOptionsMenu = (rangeStart: number, rangeEnd: number) => {
-    reshuffleActiveOptions(rangeStart, rangeEnd);
+    const shuffled = reshuffleActiveOptions(rangeStart, rangeEnd);
+    // Update refs synchronously so outside-click logic sees the latest row/table.
+    activeTableRef.current = activeTable;
+    currentRowRef.current = currentRow;
+    singleRowMenuActiveRef.current =
+      activeTable !== null && activeTable >= 4 && currentRow >= 9;
+    const shouldUseExternalMenu =
+      activeTable !== null && activeTable >= 4 && currentRow >= 9;
+    externalMenuActiveRef.current = shouldUseExternalMenu;
+    setExternalMenuActive(shouldUseExternalMenu);
+    setExternalOptions(shouldUseExternalMenu ? shuffled : []);
+    lastOptionsOpenRef.current = Date.now();
+    showOptionsRef.current = true;
     setShowOptions(true);
   };
 
@@ -706,7 +913,7 @@ export function MainPage() {
   const handleCorrectAnswer = () => {
     const message =
       positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-    const finalMessage = "Congratulations!";
+    const finalMessage = "You did it!";
     setKudosByRow((prev) => ({
       ...prev,
       [currentRow]: currentRow >= 10 ? finalMessage : message
@@ -737,8 +944,22 @@ export function MainPage() {
   ) => {
     const nextValue = value.replace(/[^0-9]/g, "");
     setAnswerInput(nextValue);
-    if (isAnswerCorrect(nextValue)) {
+    const expectedValue = multiplicand * fruitValue;
+    const expectedText = String(expectedValue);
+    const isCorrect = nextValue === expectedText;
+    const isPrefixOfExpected =
+      nextValue.length > 0 &&
+      nextValue.length < expectedText.length &&
+      expectedText.startsWith(nextValue);
+
+    if (isCorrect || isAnswerCorrect(nextValue)) {
       handleCorrectAnswer();
+      return;
+    }
+    // Suppress errors while the learner is still typing a valid prefix
+    // of the correct answer (e.g., "1" on the way to "10" or "100").
+    if (isPrefixOfExpected) {
+      setFeedback(null);
       return;
     }
     if (nextValue.trim()) {
@@ -776,9 +997,12 @@ export function MainPage() {
       const isActiveRow = multiplicand === currentRow && !isComplete;
       const isCompleteRow = multiplicand < currentRow || isComplete;
       const rowKudos = kudosByRow[multiplicand];
-      const showFinalKudos = rowKudos === "Congratulations!";
+      const showFinalKudos = rowKudos === "You did it!";
+      const showFinalBalloons = true;
       const rangeStart = (multiplicand - 1) * fruit.value;
       const rangeEnd = multiplicand * fruit.value;
+      const useSingleRowMenu = fruit.value >= 4 && multiplicand >= 9;
+      const useExternalMenuForRow = fruit.value >= 4 && multiplicand >= 9;
       const options =
         isActiveRow && shuffledOptions.length
           ? shuffledOptions
@@ -827,9 +1051,6 @@ export function MainPage() {
                     onFocus={clearInput}
                     onMouseDown={clearInput}
                     onClick={() => openOptionsMenu(rangeStart, rangeEnd)}
-                    onFocusCapture={() =>
-                      openOptionsMenu(rangeStart, rangeEnd)
-                    }
                     onChange={(event) => {
                       applyAnswerInput(event.target.value, multiplicand, fruit.value);
                     }}
@@ -846,8 +1067,15 @@ export function MainPage() {
                   >
                     v
                   </button>
-                  {showOptions && isActiveRow ? (
-                    <div className="options-menu" key={optionsKey}>
+                  {showOptions && isActiveRow && !useExternalMenuForRow ? (
+                    <div
+                      className={`options-menu ${
+                        useSingleRowMenu ? "options-menu--single-row" : ""
+                      }`}
+                      style={optionsMenuStyle}
+                      ref={optionsMenuRef}
+                      key={optionsKey}
+                    >
                       {options.map((option) => (
                         <button
                           key={`${option}-${optionsKey}`}
@@ -856,6 +1084,7 @@ export function MainPage() {
                           onClick={() => {
                             applyAnswerInput(String(option), multiplicand, fruit.value);
                             setShowOptions(false);
+                            setExternalMenuActive(false);
                           }}
                         >
                           {option}
@@ -868,20 +1097,41 @@ export function MainPage() {
             ) : (
               <>
                 = <span className="answer-pad">0</span>
-                {answer}
-                {isCompleteRow ? (
-                  <span className="status-icon success" aria-hidden="true">
-                    ✓
-                  </span>
-                ) : null}
+                <span className="answer-inline">
+                  {answer}
+                  {isCompleteRow ? (
+                    <span className="status-icon success" aria-hidden="true">
+                      ✓
+                    </span>
+                  ) : null}
+                </span>
                 {isCompleteRow && rowKudos ? (
-                  <span className="kudos-text">
+                  <span
+                    className={`kudos-text ${showFinalKudos ? "kudos-text-final" : ""}`}
+                  >
                     {rowKudos}
-                    {showFinalKudos ? (
+                    {showFinalKudos && showFinalBalloons ? (
                       <span className="kudos-balloons" aria-hidden="true">
                         <span className="balloon balloon-1" />
                         <span className="balloon balloon-2" />
                         <span className="balloon balloon-3" />
+                        <span className="balloon balloon-4" />
+                        <span className="balloon balloon-5" />
+                        <span className="balloon balloon-6" />
+                        <span className="balloon balloon-7" />
+                        <span className="balloon balloon-8" />
+                        <span className="balloon balloon-9" />
+                        <span className="balloon balloon-10" />
+                        <span className="balloon balloon-11" />
+                        <span className="balloon balloon-12" />
+                        <span className="balloon balloon-13" />
+                        <span className="balloon balloon-14" />
+                        <span className="balloon balloon-15" />
+                        <span className="balloon balloon-16" />
+                        <span className="balloon balloon-17" />
+                        <span className="balloon balloon-18" />
+                        <span className="balloon balloon-19" />
+                        <span className="balloon balloon-20" />
                       </span>
                     ) : null}
                   </span>
@@ -1079,6 +1329,16 @@ export function MainPage() {
 
   const handleSwapToggle = () => {
     setSwapOrder((prev) => !prev);
+    setCurrentRow(1);
+    setAnswerInput("");
+    setFeedback(null);
+    setCompletionMessage(null);
+    setKudosByRow({});
+    setShowOptions(false);
+    setExternalMenuActive(false);
+    setExternalOptions([]);
+    showOptionsRef.current = false;
+    clearRevealed();
   };
 
   return (
@@ -1097,7 +1357,7 @@ export function MainPage() {
                 "--active-fruit": fruit.color,
                 "--active-fruit-soft": fruit.softColor,
                 "--tooltip-text": fruit.tooltipTextColor ?? "#fff7e8",
-                "--link-text": fruit.labelColor ?? "#1c1a16",
+                "--link-text": fruit.labelColor ?? "#1e4fa3",
                 "--link-shadow": fruit.linkShadow ?? "none"
               } as React.CSSProperties
             }
@@ -1161,7 +1421,7 @@ export function MainPage() {
                 {
                   "--active-fruit": fruit.color,
                   "--active-fruit-soft": fruit.softColor,
-                  "--link-text": fruit.labelColor ?? "#1c1a16",
+                  "--link-text": fruit.labelColor ?? "#1e4fa3",
                   "--link-shadow": fruit.linkShadow ?? "none"
                 } as React.CSSProperties
               }
@@ -1228,7 +1488,7 @@ export function MainPage() {
                 {
                   "--active-fruit": fruit.color,
                   "--active-fruit-soft": fruit.softColor,
-                  "--link-text": fruit.labelColor ?? "#1c1a16",
+                  "--link-text": fruit.labelColor ?? "#1e4fa3",
                   "--link-shadow": fruit.linkShadow ?? "none"
                 } as React.CSSProperties
               }
@@ -1287,8 +1547,8 @@ export function MainPage() {
                   onClick={handleSwapToggle}
                 >
                   {swapOrder
-                    ? `Go n × ${activeFruit.value}`
-                    : `Go ${activeFruit.value} × n`}
+                    ? `Swap to n × ${activeFruit.value}`
+                    : `Swap to ${activeFruit.value} × n`}
                 </button>
                 {mode === "practice" ? (
                   <button
@@ -1299,7 +1559,7 @@ export function MainPage() {
                       clearRevealed();
                     }}
                   >
-                    Return to study
+                    Study again with Trudy!
                   </button>
                 ) : (
                   <button
@@ -1325,7 +1585,7 @@ export function MainPage() {
                     type="button"
                     onClick={handleStartOver}
                   >
-                    Start Over
+                    Restart
                   </button>
                 ) : null}
                 {mode === "practice" ? (
@@ -1334,7 +1594,7 @@ export function MainPage() {
                     type="button"
                     onClick={() => handlePreviousTable("practice")}
                   >
-                    Previous quiz
+                    {previousFruitValue ? `Redo ${previousFruitValue}s quiz` : "Previous quiz"}
                   </button>
                 ) : null}
                 {mode === "practice" ? (
@@ -1343,7 +1603,7 @@ export function MainPage() {
                     type="button"
                     onClick={() => handleNextTable("practice")}
                   >
-                    Next quiz
+                    {nextFruitValue ? `Do ${nextFruitValue}s quiz` : "Next quiz"}
                   </button>
                 ) : null}
                 {mode === "study" ? (
@@ -1383,8 +1643,8 @@ export function MainPage() {
                   or tap on an IPAD, tablet, or a smartphone), then listen to
                   Trudy and repeat after her. (Keep in mind that hearing
                   yourself say it will help you remember it better!) When you
-                  have completed the exercise, click the "quiz yourself" link
-                  that will appear at the bottom of the page.
+                  have completed the exercise, click "Quiz yourself" at the
+                  bottom of the page.
                 </p>
                 <div className="table-card table-card-large overlay-table study-table">
                   {renderStaticRows(activeFruit)}
@@ -1400,13 +1660,16 @@ export function MainPage() {
                 ) : null}
               </div>
             ) : (
-              <form className="quiz" onSubmit={handleSubmit}>
-                <div className="table-card table-card-large overlay-table">
-                  {renderQuizRows(activeFruit)}
-                </div>
-              </form>
+              <>
+                <form className="quiz" onSubmit={handleSubmit}>
+                  <div className="table-card table-card-large overlay-table">
+                    {renderQuizRows(activeFruit)}
+                  </div>
+                </form>
+              </>
             )}
           </div>
+          {externalMenuPortal}
         </div>
       ) : null}
     </main>
