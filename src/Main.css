@@ -940,11 +940,78 @@ body {
 }
 
 .fruit.fig {
-  background: #5a2a5e;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 210, 255, 0.35) 0 28%, transparent 35%),
+    radial-gradient(circle at 70% 70%, rgba(45, 12, 53, 0.45) 0 42%, transparent 60%),
+    linear-gradient(145deg, #7a2f7f, #4b1d53 60%, #2c0f36);
+  border-radius: 58% 58% 62% 62% / 64% 64% 52% 52%;
+  box-shadow:
+    inset -3px -4px 0 rgba(26, 6, 34, 0.28),
+    inset 2px 3px 0 rgba(255, 225, 255, 0.18),
+    0 2px 6px rgba(31, 27, 22, 0.18);
+}
+
+.fruit.fig::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 10px;
+  height: 8px;
+  background: linear-gradient(180deg, #6bbf59, #2f7f3a);
+  border-radius: 8px 8px 3px 3px;
+  transform: translateX(-50%) rotate(-6deg);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.fruit.fig::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 240, 255, 0.28);
+  border-radius: 50%;
+  transform: translateX(-50%);
 }
 
 .fruit.farkleberry {
-  background: #2f3b6e;
+  background:
+    radial-gradient(circle at 28% 28%, rgba(192, 210, 255, 0.5) 0 18%, transparent 28%),
+    radial-gradient(circle at 72% 30%, rgba(120, 150, 230, 0.35) 0 16%, transparent 26%),
+    radial-gradient(circle at 55% 60%, rgba(60, 24, 88, 0.82) 0 68%, rgba(60, 24, 88, 0.82) 100%),
+    linear-gradient(145deg, #4c2b73, #2c1b52 62%, #1a0f36);
+  border-radius: 55% 60% 58% 62% / 60% 58% 64% 56%;
+  box-shadow:
+    inset -3px -4px 0 rgba(8, 10, 38, 0.38),
+    inset 2px 3px 0 rgba(210, 220, 255, 0.18),
+    0 2px 6px rgba(31, 27, 22, 0.18);
+}
+
+.fruit.farkleberry::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 12px;
+  height: 8px;
+  background: linear-gradient(180deg, #7acb5a, #2f7f3a);
+  border-radius: 8px 8px 3px 3px;
+  transform: translateX(-50%) rotate(-4deg);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.fruit.farkleberry::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 52%;
+  width: 7px;
+  height: 7px;
+  background: rgba(210, 220, 255, 0.18);
+  border-radius: 50%;
+  transform: translateX(-50%);
 }
 
 .fruit.strawberry {
@@ -970,7 +1037,42 @@ body {
 }
 
 .fruit.nectarine {
-  background: #ffb572;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 235, 210, 0.55) 0 20%, transparent 32%),
+    radial-gradient(circle at 52% 56%, rgba(255, 214, 64, 0.72) 0 34%, transparent 52%),
+    radial-gradient(circle at 78% 32%, rgba(233, 61, 82, 0.45) 0 26%, transparent 44%),
+    radial-gradient(circle at 68% 72%, rgba(210, 82, 36, 0.38) 0 42%, transparent 68%),
+    linear-gradient(145deg, #ffcf88, #ff9e4d 55%, #ff7a3d);
+  border-radius: 56% 60% 58% 62% / 62% 58% 64% 56%;
+  box-shadow:
+    inset -3px -4px 0 rgba(156, 58, 24, 0.28),
+    inset 2px 3px 0 rgba(255, 235, 205, 0.25),
+    0 2px 6px rgba(31, 27, 22, 0.18);
+}
+
+.fruit.nectarine::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 52%;
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(180deg, rgba(192, 80, 32, 0.65), rgba(140, 48, 20, 0.7));
+  border-radius: 999px;
+  transform: translateX(-50%) rotate(6deg);
+  opacity: 0.7;
+}
+
+.fruit.nectarine::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 38%;
+  width: 7px;
+  height: 7px;
+  background: rgba(255, 245, 225, 0.42);
+  border-radius: 50%;
+  transform: translateX(-50%);
 }
 
 .fruit.tangelo {
@@ -1595,6 +1697,19 @@ body {
   .fruit-choice .fruit {
     width: 46px;
     height: 46px;
+  }
+
+  /* Use the extra portrait height to increase vertical rhythm. */
+  .table-overlay .row {
+    padding: 10px 0;
+    gap: 10px;
+    font-size: 1.4rem;
+  }
+
+  /* Make dropdown choices easier to tap/read on tablets. */
+  .options-item {
+    font-size: 1.15rem;
+    padding: 8px 12px;
   }
 }
 .fruit-icon {

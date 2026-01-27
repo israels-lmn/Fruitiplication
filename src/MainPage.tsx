@@ -1073,6 +1073,10 @@ export function MainPage() {
                     className="answer-field"
                     type="text"
                     inputMode="numeric"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     value={answerInput}
                     onFocus={clearInput}
                     onMouseDown={clearInput}
