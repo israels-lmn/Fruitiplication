@@ -23,6 +23,8 @@ body {
   min-height: 100dvh;
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-size: 18px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   letter-spacing: 0.01em;
   color: var(--ink);
   background:
@@ -135,7 +137,10 @@ body {
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 10px 26px var(--shadow);
   backdrop-filter: blur(8px);
-  justify-content: space-between;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .legend-link {
