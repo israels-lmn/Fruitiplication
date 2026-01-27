@@ -607,6 +607,7 @@ body {
 .overlay-table {
   margin: 0 auto;
   padding: 8px;
+  --fruit-size: 34px;
   transform: scale(
     clamp(0.6, calc((100dvh - 440px) / 520), 0.86)
   );
@@ -942,12 +943,12 @@ body {
 .fruit.fig {
   background:
     radial-gradient(circle at 35% 30%, rgba(255, 210, 255, 0.35) 0 28%, transparent 35%),
-    radial-gradient(circle at 70% 70%, rgba(45, 12, 53, 0.45) 0 42%, transparent 60%),
-    linear-gradient(145deg, #7a2f7f, #4b1d53 60%, #2c0f36);
+    radial-gradient(circle at 70% 70%, rgba(70, 20, 28, 0.42) 0 44%, transparent 62%),
+    linear-gradient(145deg, #9a3f52, #6a2436 60%, #3c1320);
   border-radius: 58% 58% 62% 62% / 64% 64% 52% 52%;
   box-shadow:
-    inset -3px -4px 0 rgba(26, 6, 34, 0.28),
-    inset 2px 3px 0 rgba(255, 225, 255, 0.18),
+    inset -3px -4px 0 rgba(40, 10, 18, 0.32),
+    inset 2px 3px 0 rgba(255, 225, 235, 0.2),
     0 2px 6px rgba(31, 27, 22, 0.18);
 }
 
@@ -1660,6 +1661,12 @@ body {
 }
 
 @media (max-width: 1024px) and (orientation: portrait) {
+  .overlay-table {
+    --fruit-size: 38px;
+    --fruit-gap: 6px;
+    transform: scale(0.9);
+  }
+
   .legend-links {
     padding: 12px 18px;
     scroll-padding-right: 36px;
@@ -1701,9 +1708,14 @@ body {
 
   /* Use the extra portrait height to increase vertical rhythm. */
   .table-overlay .row {
-    padding: 10px 0;
-    gap: 10px;
-    font-size: 1.4rem;
+    padding: 12px 0;
+    gap: 12px;
+    font-size: 1.48rem;
+  }
+
+  .table-overlay .fruit-line {
+    width: auto;
+    max-width: 100%;
   }
 
   /* Make dropdown choices easier to tap/read on tablets. */
