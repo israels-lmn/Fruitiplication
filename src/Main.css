@@ -129,7 +129,7 @@ body {
   top: 0;
   z-index: 2;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 10px 16px;
   margin-bottom: 32px;
@@ -137,11 +137,8 @@ body {
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 10px 26px var(--shadow);
   backdrop-filter: blur(8px);
-  justify-content: flex-start;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
-  scroll-padding-right: 28px;
+  justify-content: center;
+  overflow-x: visible;
 }
 
 .legend-link {

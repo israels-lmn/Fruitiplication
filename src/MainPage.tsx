@@ -328,6 +328,15 @@ export function MainPage() {
     }
     const handleViewportChange = () => {
       window.requestAnimationFrame(() => {
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+          viewportMeta.setAttribute(
+            "content",
+            "width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
+          );
+        }
+        // Force a tiny reflow to help Safari settle after orientation changes.
+        document.body.getBoundingClientRect();
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       });
     };
