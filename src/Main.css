@@ -131,7 +131,7 @@ body {
   display: flex;
   flex-wrap: nowrap;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 10px 16px;
   margin-bottom: 32px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.85);
@@ -141,6 +141,7 @@ body {
   overflow-x: auto;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
+  scroll-padding-right: 28px;
 }
 
 .legend-link {
@@ -1556,6 +1557,47 @@ body {
 @media (max-height: 950px) {
   .overlay-table {
     transform: scale(0.86);
+  }
+}
+
+@media (max-width: 1024px) and (orientation: portrait) {
+  .legend-links {
+    padding: 12px 18px;
+    scroll-padding-right: 36px;
+  }
+
+  .legend-link {
+    padding: 8px 12px;
+    font-size: 0.98rem;
+  }
+
+  .legend-link .fruit {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+  }
+
+  .fruity-stage {
+    gap: 28px;
+  }
+
+  .fruity-center {
+    padding-bottom: 180px;
+  }
+
+  .fruity-body {
+    width: 190px;
+    height: 165px;
+  }
+
+  .fruit-choice {
+    padding: 12px 16px;
+    font-size: 1.05rem;
+  }
+
+  .fruit-choice .fruit {
+    width: 46px;
+    height: 46px;
   }
 }
 .fruit-icon {
