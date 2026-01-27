@@ -323,6 +323,23 @@ export function MainPage() {
   }, [activeTable, currentRow]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const handleViewportChange = () => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
+    };
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("orientationchange", handleViewportChange);
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof document === "undefined") {
       return;
     }
