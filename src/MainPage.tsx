@@ -722,11 +722,27 @@ export function MainPage() {
     }
     utterance.rate = 1.02;
     utterance.pitch = 1.35;
-    const useAnimatedSpeechProgress = !isChromeIOS;
+    const progressMode: "boundary" | "timed" = isChromeIOS ? "timed" : "boundary";
     let hasBoundary = false;
     utterance.onstart = () => {
-      if (!useAnimatedSpeechProgress) {
-        setFruitySpeech(message);
+      if (fruityTimerRef.current) {
+        clearInterval(fruityTimerRef.current);
+        fruityTimerRef.current = null;
+      }
+      if (progressMode === "timed") {
+        setFruitySpeech(words[0] ?? "");
+        let index = 1;
+        const baseInterval = Math.max(320, Math.round(360 / utterance.rate));
+        fruityTimerRef.current = setInterval(() => {
+          setFruitySpeech(words.slice(0, index + 1).join(" "));
+          index += 1;
+          if (index >= words.length) {
+            if (fruityTimerRef.current) {
+              clearInterval(fruityTimerRef.current);
+              fruityTimerRef.current = null;
+            }
+          }
+        }, baseInterval);
         return;
       }
       setFruitySpeech(words[0] ?? "");
@@ -751,7 +767,7 @@ export function MainPage() {
       }, baseInterval);
     };
     utterance.onboundary = (event) => {
-      if (!useAnimatedSpeechProgress) {
+      if (progressMode !== "boundary") {
         return;
       }
       if (event.name !== "word") {
