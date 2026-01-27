@@ -681,6 +681,60 @@ export function MainPage() {
     window.speechSynthesis.cancel();
     const voice = pickYoungFemaleVoice();
 
+    if (isChromeIOS) {
+      const baseRate = 1.02;
+      const basePitch = 1.35;
+      if (fruityTimerRef.current) {
+        clearInterval(fruityTimerRef.current);
+        fruityTimerRef.current = null;
+      }
+      const greetingUtterance = new SpeechSynthesisUtterance(greeting);
+      if (voice) {
+        greetingUtterance.voice = voice;
+      }
+      greetingUtterance.rate = 1.15;
+      greetingUtterance.pitch = 1.55;
+      greetingUtterance.onstart = () => {
+        setFruitySpeech(greeting);
+      };
+      greetingUtterance.onend = () => {
+        const restUtterance = new SpeechSynthesisUtterance(restMessage);
+        if (voice) {
+          restUtterance.voice = voice;
+        }
+        restUtterance.rate = baseRate;
+        restUtterance.pitch = basePitch;
+        restUtterance.onstart = () => {
+          setFruitySpeech(
+            restWords.length ? `${greeting} ${restWords[0]}` : greeting
+          );
+          let index = 1;
+          const baseInterval = Math.max(320, Math.round(360 / restUtterance.rate));
+          fruityTimerRef.current = setInterval(() => {
+            const spokenRest = restWords.slice(0, index + 1).join(" ");
+            setFruitySpeech(spokenRest ? `${greeting} ${spokenRest}` : greeting);
+            index += 1;
+            if (index >= restWords.length) {
+              if (fruityTimerRef.current) {
+                clearInterval(fruityTimerRef.current);
+                fruityTimerRef.current = null;
+              }
+            }
+          }, baseInterval);
+        };
+        restUtterance.onend = () => {
+          finishFruitySpeech();
+          if (fruityTimerRef.current) {
+            clearInterval(fruityTimerRef.current);
+            fruityTimerRef.current = null;
+          }
+        };
+        window.speechSynthesis.speak(restUtterance);
+      };
+      window.speechSynthesis.speak(greetingUtterance);
+      return;
+    }
+
     if (isIOS && !isChromeIOS) {
       const chunkSize = 4;
       let wordIndex = 0;
@@ -744,50 +798,6 @@ export function MainPage() {
         fruityTimerRef.current = null;
       }
       if (progressMode === "timed") {
-        if (isChromeIOS) {
-          const greetingUtterance = new SpeechSynthesisUtterance(greeting);
-          if (voice) {
-            greetingUtterance.voice = voice;
-          }
-          greetingUtterance.rate = 1.15;
-          greetingUtterance.pitch = 1.55;
-          greetingUtterance.onstart = () => {
-            setFruitySpeech(greeting);
-          };
-          greetingUtterance.onend = () => {
-            const restUtterance = new SpeechSynthesisUtterance(restMessage);
-            if (voice) {
-              restUtterance.voice = voice;
-            }
-            restUtterance.rate = utterance.rate;
-            restUtterance.pitch = utterance.pitch;
-            restUtterance.onstart = () => {
-              setFruitySpeech(
-                restWords.length ? `${greeting} ${restWords[0]}` : greeting
-              );
-              let index = 1;
-              const baseInterval = Math.max(
-                320,
-                Math.round(360 / restUtterance.rate)
-              );
-              fruityTimerRef.current = setInterval(() => {
-                const spokenRest = restWords.slice(0, index + 1).join(" ");
-                setFruitySpeech(spokenRest ? `${greeting} ${spokenRest}` : greeting);
-                index += 1;
-                if (index >= restWords.length) {
-                  if (fruityTimerRef.current) {
-                    clearInterval(fruityTimerRef.current);
-                    fruityTimerRef.current = null;
-                  }
-                }
-              }, baseInterval);
-            };
-            restUtterance.onend = utterance.onend ?? null;
-            window.speechSynthesis.speak(restUtterance);
-          };
-          window.speechSynthesis.speak(greetingUtterance);
-          return;
-        }
         setFruitySpeech(words[0] ?? "");
         let index = 1;
         const baseInterval = Math.max(320, Math.round(360 / utterance.rate));
