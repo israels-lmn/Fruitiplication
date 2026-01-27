@@ -916,6 +916,19 @@ body {
   transition: transform 0.18s ease;
 }
 
+.fruit-icon {
+  font-size: 1em;
+}
+
+.fruit.watermelon .fruit-icon,
+.fruit.tomato .fruit-icon,
+.fruit.tangerine .fruit-icon,
+.fruit.strawberry .fruit-icon,
+.fruit.elderberry .fruit-icon,
+.fruit.tangelo .fruit-icon {
+  font-size: 1.2em;
+}
+
 .fruit.label {
   font-size: 0.7rem;
   font-weight: 700;
@@ -1040,7 +1053,7 @@ body {
 .fruit.nectarine {
   background:
     radial-gradient(circle at 30% 28%, rgba(255, 235, 210, 0.55) 0 20%, transparent 32%),
-    radial-gradient(circle at 52% 56%, rgba(255, 214, 64, 0.72) 0 34%, transparent 52%),
+    radial-gradient(circle at 52% 56%, rgba(255, 120, 140, 0.68) 0 34%, transparent 52%),
     radial-gradient(circle at 78% 32%, rgba(233, 61, 82, 0.45) 0 26%, transparent 44%),
     radial-gradient(circle at 68% 72%, rgba(210, 82, 36, 0.38) 0 42%, transparent 68%),
     linear-gradient(145deg, #ffcf88, #ff9e4d 55%, #ff7a3d);
@@ -1664,7 +1677,7 @@ body {
   .overlay-table {
     --fruit-size: 38px;
     --fruit-gap: 6px;
-    transform: scale(0.9);
+    transform: scale(0.88);
   }
 
   .legend-links {
@@ -1708,9 +1721,9 @@ body {
 
   /* Use the extra portrait height to increase vertical rhythm. */
   .table-overlay .row {
-    padding: 12px 0;
-    gap: 12px;
-    font-size: 1.48rem;
+    padding: 10px 0;
+    gap: 10px;
+    font-size: 1.4rem;
   }
 
   .table-overlay .fruit-line {
