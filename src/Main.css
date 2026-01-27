@@ -20,6 +20,7 @@
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-size: 18px;
   letter-spacing: 0.01em;
@@ -32,6 +33,7 @@ body {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .page {
@@ -519,6 +521,7 @@ body {
   animation: pop-in 0.7s ease-out;
   border: 3px solid var(--active-fruit, rgba(255, 140, 66, 0.4));
   height: calc(100vh - 90px);
+  height: calc(100dvh - 90px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -602,7 +605,7 @@ body {
   margin: 0 auto;
   padding: 8px;
   transform: scale(
-    clamp(0.6, calc((100vh - 440px) / 520), 0.86)
+    clamp(0.6, calc((100dvh - 440px) / 520), 0.86)
   );
   transform-origin: top center;
 }
