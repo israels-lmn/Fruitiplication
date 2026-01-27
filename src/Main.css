@@ -1703,9 +1703,9 @@ body {
 
 @media (max-width: 1024px) and (orientation: portrait) {
   .overlay-table {
-    --fruit-size: 38px;
-    --fruit-gap: 6px;
-    transform: scale(0.88);
+    --fruit-size: 35px;
+    --fruit-gap: 5px;
+    transform: scale(0.84);
   }
 
   .legend-links {
@@ -1749,9 +1749,9 @@ body {
 
   /* Use the extra portrait height to increase vertical rhythm. */
   .table-overlay .row {
-    padding: 10px 0;
-    gap: 10px;
-    font-size: 1.4rem;
+    padding: 8px 0;
+    gap: 8px;
+    font-size: 1.34rem;
   }
 
   .table-overlay .fruit-line {
