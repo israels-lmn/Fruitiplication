@@ -251,6 +251,43 @@ body {
   margin-top: 8px;
 }
 
+.fruity-avatar .fruity-eye,
+.fruity-avatar .fruity-smile {
+  transform-origin: center;
+}
+
+.fruity-avatar.speaking .fruity-eye {
+  animation: fruity-blink 3.6s ease-in-out infinite;
+}
+
+.fruity-avatar.speaking .fruity-eye.right {
+  animation-delay: 0.15s;
+}
+
+.fruity-avatar.speaking .fruity-smile {
+  animation: fruity-talk var(--mouth-duration, 320ms) ease-in-out infinite;
+}
+
+.fruity-avatar.speaking .fruity-arm.left {
+  animation: fruity-gesture-left 3.2s ease-in-out infinite;
+  transform-origin: right center;
+}
+
+.fruity-avatar.speaking .fruity-arm.right {
+  animation: fruity-gesture-right 3.6s ease-in-out infinite;
+  transform-origin: left center;
+}
+
+.fruity-avatar.speaking .fruity-hand.left {
+  animation: fruity-gesture-left 3.2s ease-in-out infinite;
+  transform-origin: right center;
+}
+
+.fruity-avatar.speaking .fruity-hand.right {
+  animation: fruity-gesture-right 3.6s ease-in-out infinite;
+  transform-origin: left center;
+}
+
 .fruity-head {
   width: 140px;
   height: 140px;
@@ -331,6 +368,62 @@ body {
   transform: translateX(-50%);
 }
 
+@keyframes fruity-blink {
+  0%,
+  46%,
+  100% {
+    transform: scaleY(1);
+  }
+  48%,
+  52% {
+    transform: scaleY(0.15);
+  }
+}
+
+@keyframes fruity-talk {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleY(1);
+  }
+  50% {
+    transform: translateX(-50%) scaleY(0.65);
+  }
+}
+
+@keyframes fruity-gesture-left {
+  0%,
+  28%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  34% {
+    transform: rotate(-2deg) translateY(-2px);
+  }
+  42% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(-6deg);
+  }
+}
+
+@keyframes fruity-gesture-right {
+  0%,
+  36%,
+  100% {
+    transform: rotate(8deg);
+  }
+  44% {
+    transform: rotate(14deg) translateY(-2px);
+  }
+  54% {
+    transform: rotate(2deg);
+  }
+  64% {
+    transform: rotate(10deg);
+  }
+}
+
 .fruity-body {
   width: 160px;
   height: 140px;
@@ -369,6 +462,7 @@ body {
   border-radius: 999px;
   position: absolute;
   top: 30px;
+  overflow: visible;
 }
 
 .fruity-arm.left {
@@ -381,34 +475,77 @@ body {
   transform: rotate(8deg);
 }
 
+/* Hide the standalone hand nodes; attach hands directly to arms. */
 .fruity-hand {
-  width: 22px;
-  height: 22px;
-  background: #ffd7a6;
-  border-radius: 50%;
+  display: none;
+}
+
+.fruity-arm::after {
+  content: "";
   position: absolute;
-  top: 22px;
-  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.5);
+  top: 50%;
+  width: 30px;
+  height: 22px;
+  background: linear-gradient(160deg, #ffe4c4, #ffc98e 62%, #ffb36a);
+  border-radius: 60% 62% 58% 60% / 72% 72% 52% 52%;
+  border: 1px solid rgba(154, 84, 26, 0.24);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.55),
+    inset -2px -2px 0 rgba(170, 92, 28, 0.18),
+    0 2px 4px rgba(31, 27, 22, 0.12);
 }
 
-.fruity-hand.left {
-  left: -98px;
+.fruity-arm::before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 4px);
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(160deg, #ffd7ad, #ffbe7a);
+  border-radius: 60% 60% 55% 55%;
+  border: 1px solid rgba(154, 84, 26, 0.2);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
-.fruity-hand.right {
-  right: -98px;
+.fruity-arm.left::after {
+  left: -18px;
+  transform: translateY(-50%) rotate(-6deg);
+}
+
+.fruity-arm.left::before {
+  left: -6px;
+  transform: rotate(-18deg);
+}
+
+.fruity-arm.right::after {
+  right: -18px;
+  transform: translateY(-50%) rotate(6deg);
+}
+
+.fruity-arm.right::before {
+  right: -6px;
+  transform: rotate(18deg);
 }
 
 .fruity-dress {
   position: absolute;
   left: 50%;
-  bottom: -6px;
-  width: 140px;
-  height: 80px;
+  bottom: -12px;
+  width: 152px;
+  height: 118px;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #2f3b6e, #3a4a8a, #1f254a);
-  border-radius: 0 0 70px 70px;
-  box-shadow: inset 0 8px 12px rgba(255, 255, 255, 0.35);
+  background:
+    radial-gradient(circle at 24px 28px, rgba(255, 94, 77, 0.45) 0 8px, transparent 9px),
+    radial-gradient(circle at 76px 18px, rgba(78, 140, 58, 0.42) 0 8px, transparent 9px),
+    radial-gradient(circle at 122px 30px, rgba(233, 61, 82, 0.46) 0 9px, transparent 10px),
+    radial-gradient(circle at 42px 68px, rgba(242, 195, 60, 0.5) 0 9px, transparent 10px),
+    radial-gradient(circle at 100px 78px, rgba(60, 36, 110, 0.46) 0 9px, transparent 10px),
+    linear-gradient(180deg, #4f74d9, #3f5ec4 48%, #2f3f9a);
+  border-radius: 34px 34px 92px 92px / 26px 26px 110px 110px;
+  box-shadow:
+    inset 0 10px 14px rgba(255, 255, 255, 0.35),
+    inset 0 -8px 16px rgba(29, 36, 110, 0.28),
+    0 10px 18px rgba(31, 27, 22, 0.14);
 }
 
 .fruity-leg {
@@ -417,7 +554,7 @@ body {
   background: linear-gradient(180deg, #ff9e3d, #ff6b6b);
   border-radius: 999px;
   position: absolute;
-  bottom: -38px;
+  bottom: -60px;
 }
 
 .fruity-leg.left {
@@ -429,20 +566,36 @@ body {
 }
 
 .fruity-foot {
-  width: 28px;
-  height: 14px;
-  background: #ffd7a6;
-  border-radius: 999px;
+  width: 34px;
+  height: 18px;
+  background: linear-gradient(180deg, #1f2d5f, #141c3c);
+  border-radius: 14px 14px 12px 12px / 12px 12px 10px 10px;
   position: absolute;
-  bottom: -46px;
+  bottom: -74px;
+  border: 1px solid rgba(6, 10, 28, 0.45);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.18),
+    0 4px 8px rgba(18, 24, 56, 0.35);
 }
 
 .fruity-foot.left {
-  left: 35px;
+  left: 30px;
 }
 
 .fruity-foot.right {
-  right: 35px;
+  right: 30px;
+}
+
+.fruity-foot::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -3px;
+  height: 5px;
+  background: linear-gradient(180deg, #f5f6ff, #cfd5ff);
+  border-radius: 999px;
+  opacity: 0.9;
 }
 
 .meet-button {

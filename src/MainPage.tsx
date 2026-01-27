@@ -204,6 +204,7 @@ export function MainPage() {
   const [closeFlash, setCloseFlash] = useState(false);
   const [fruitySpeech, setFruitySpeech] = useState("");
   const [fruitySpeaking, setFruitySpeaking] = useState(false);
+  const [fruityMouthDurationMs, setFruityMouthDurationMs] = useState(320);
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fruityEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [allowEqualsByTable, setAllowEqualsByTable] = useState<
@@ -244,6 +245,7 @@ export function MainPage() {
       : fruits[(activeFruitIndex - 1 + fruits.length) % fruits.length].value;
   const nextFruitValue =
     activeFruitIndex === -1 ? null : fruits[(activeFruitIndex + 1) % fruits.length].value;
+  const showFruityText = false;
   const isComplete = currentRow > 10;
   const singleRowMenuActive =
     showOptions && activeTable !== null && activeTable >= 4 && currentRow >= 9;
@@ -639,21 +641,19 @@ export function MainPage() {
       fruityEndTimerRef.current = null;
     }
     setFruitySpeech("");
-    setFruitySpeaking(true);
 
     const finishFruitySpeech = () => {
       setFruitySpeech(message);
       if (fruityEndTimerRef.current) {
         clearTimeout(fruityEndTimerRef.current);
       }
-      fruityEndTimerRef.current = setTimeout(() => {
-        setFruitySpeaking(false);
-      }, 2000);
+      setFruitySpeaking(false);
     };
 
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       const words = message.split(" ");
       let index = 0;
+      setFruitySpeaking(true);
       fruityTimerRef.current = setInterval(() => {
         setFruitySpeech(words.slice(0, index + 1).join(" "));
         index += 1;
@@ -695,7 +695,9 @@ export function MainPage() {
       greetingUtterance.rate = 1.15;
       greetingUtterance.pitch = 1.55;
       greetingUtterance.onstart = () => {
+        setFruitySpeaking(true);
         setFruitySpeech(greeting);
+        setFruityMouthDurationMs(260);
       };
       greetingUtterance.onend = () => {
         const restUtterance = new SpeechSynthesisUtterance(restMessage);
@@ -710,6 +712,7 @@ export function MainPage() {
           );
           let index = 1;
           const baseInterval = Math.max(320, Math.round(360 / restUtterance.rate));
+          setFruityMouthDurationMs(baseInterval);
           fruityTimerRef.current = setInterval(() => {
             const spokenRest = restWords.slice(0, index + 1).join(" ");
             setFruitySpeech(spokenRest ? `${greeting} ${spokenRest}` : greeting);
@@ -752,11 +755,13 @@ export function MainPage() {
         utterance.rate = 1.02;
         utterance.pitch = 1.35;
         utterance.onstart = () => {
+          setFruitySpeaking(true);
           if (fruityTimerRef.current) {
             clearInterval(fruityTimerRef.current);
           }
           let localIndex = 0;
           const baseInterval = Math.round(230 / utterance.rate);
+          setFruityMouthDurationMs(baseInterval);
           fruityTimerRef.current = setInterval(() => {
             const nextCount = Math.min(wordIndex + localIndex + 1, words.length);
             setFruitySpeech(words.slice(0, nextCount).join(" "));
@@ -793,6 +798,7 @@ export function MainPage() {
     const progressMode: "boundary" | "timed" = isChromeIOS ? "timed" : "boundary";
     let hasBoundary = false;
     utterance.onstart = () => {
+      setFruitySpeaking(true);
       if (fruityTimerRef.current) {
         clearInterval(fruityTimerRef.current);
         fruityTimerRef.current = null;
@@ -801,6 +807,7 @@ export function MainPage() {
         setFruitySpeech(words[0] ?? "");
         let index = 1;
         const baseInterval = Math.max(320, Math.round(360 / utterance.rate));
+        setFruityMouthDurationMs(baseInterval);
         fruityTimerRef.current = setInterval(() => {
           setFruitySpeech(words.slice(0, index + 1).join(" "));
           index += 1;
@@ -816,6 +823,7 @@ export function MainPage() {
       setFruitySpeech(words[0] ?? "");
       let index = 1;
       const baseInterval = Math.round(240 / utterance.rate);
+      setFruityMouthDurationMs(baseInterval);
       fruityTimerRef.current = setInterval(() => {
         if (hasBoundary) {
           if (fruityTimerRef.current) {
@@ -1577,7 +1585,15 @@ export function MainPage() {
           <button className="meet-button" type="button" onClick={handleMeetFruity}>
             Meet Trudy Fruity
           </button>
-          <div className="fruity-avatar" aria-hidden="true">
+          <div
+            className={`fruity-avatar ${fruitySpeaking ? "speaking" : ""}`}
+            style={
+              {
+                "--mouth-duration": `${fruityMouthDurationMs}ms`
+              } as React.CSSProperties
+            }
+            aria-hidden="true"
+          >
             <div className="fruity-head">
               <span className="fruity-bow" />
               <span className="fruity-hair" />
@@ -1597,7 +1613,7 @@ export function MainPage() {
               <span className="fruity-foot right" />
             </div>
           </div>
-          {fruitySpeech ? (
+          {showFruityText && fruitySpeech ? (
             <div className={`fruity-bubble ${fruitySpeaking ? "active" : ""}`}>
               {fruitySpeech}
             </div>
