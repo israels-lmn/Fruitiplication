@@ -297,6 +297,12 @@ export function MainPage() {
     "Way to go!",
     "Good job!"
   ];
+  const finalKudosMessages = [
+    "You did it!",
+    "Great job!",
+    "Way to go!",
+    "You're very smart!"
+  ];
 
   useEffect(() => {
     singleRowMenuActiveRef.current = singleRowMenuActive;
@@ -1040,10 +1046,59 @@ export function MainPage() {
     window.speechSynthesis.speak(first);
   };
 
+  const speakCelebration = (text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+    try {
+      window.speechSynthesis.cancel();
+      const voice = pickYoungFemaleVoice();
+      if (text === "You're very smart!") {
+        const parts = ["You're", "very", "smart!"];
+        const utterances = parts.map((part, index) => {
+          const utterance = new SpeechSynthesisUtterance(part);
+          if (voice) {
+            utterance.voice = voice;
+          }
+          if (index === 1) {
+            utterance.rate = 2.0;
+            utterance.pitch = 1.5;
+          } else {
+            utterance.rate = 2.0;
+            utterance.pitch = 1.35;
+          }
+          return utterance;
+        });
+        const speakNext = (index: number) => {
+          if (index >= utterances.length) {
+            return;
+          }
+          const current = utterances[index];
+          current.onend = () => speakNext(index + 1);
+          window.speechSynthesis.speak(current);
+        };
+        speakNext(0);
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (voice) {
+        utterance.voice = voice;
+      }
+      utterance.rate = 1.05;
+      utterance.pitch = 1.35;
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      // Ignore speech errors silently.
+    }
+  };
+
   const handleCorrectAnswer = () => {
     const message =
       positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-    const finalMessage = "You did it!";
+    const finalMessage =
+      finalKudosMessages[
+        Math.floor(Math.random() * finalKudosMessages.length)
+      ];
     setKudosByRow((prev) => ({
       ...prev,
       [currentRow]: currentRow >= 10 ? finalMessage : message
@@ -1051,6 +1106,7 @@ export function MainPage() {
     if (currentRow >= 10) {
       setCurrentRow(11);
       setCompletionMessage(null);
+      speakCelebration(finalMessage);
     } else {
       setCurrentRow((prev) => prev + 1);
     }
@@ -1127,8 +1183,13 @@ export function MainPage() {
       const isActiveRow = multiplicand === currentRow && !isComplete;
       const isCompleteRow = multiplicand < currentRow || isComplete;
       const rowKudos = kudosByRow[multiplicand];
-      const showFinalKudos = rowKudos === "You did it!";
+      const isFinalRow = multiplicand === 10;
+      const showFinalKudos =
+        isFinalRow &&
+        rowKudos !== undefined &&
+        finalKudosMessages.includes(rowKudos);
       const showFinalBalloons = true;
+      const totalOffset = (multiplicand - 1) * fruit.value;
       const rangeStart = (multiplicand - 1) * fruit.value;
       const rangeEnd = multiplicand * fruit.value;
       const useSingleRowMenu = fruit.value >= 4 && multiplicand >= 9;
@@ -1161,10 +1222,10 @@ export function MainPage() {
                     ? ({ "--label-color": fruit.labelColor } as React.CSSProperties)
                     : undefined
                 }
-                aria-label={fruit.name}
+                aria-label={`${fruit.name} ${totalOffset + count + 1}`}
               >
                 <span className="fruit-icon">{fruit.icon ?? fruit.label}</span>
-                <span className="fruit-number">{count + 1}</span>
+                <span className="fruit-number">{totalOffset + count + 1}</span>
               </span>
             ))}
           </div>
@@ -1805,7 +1866,7 @@ export function MainPage() {
             ) : (
               <>
                 <form className="quiz" onSubmit={handleSubmit}>
-                  <div className="table-card table-card-large overlay-table">
+                  <div className="table-card table-card-large overlay-table quiz-table">
                     {renderQuizRows(activeFruit)}
                   </div>
                 </form>
