@@ -1581,23 +1581,8 @@ export function MainPage() {
       <section className="hero">
         <div>
           <h1 className="title">
-            {[
-              "F",
-              "R",
-              "U",
-              "I",
-              "T",
-              "I",
-              "P",
-              "L",
-              "I",
-              "C",
-              "A",
-              "T",
-              "I",
-              "O",
-              "N"
-            ].map((letter, index) => (
+            {["F", "R", "U", "I", "T", "I", "P", "L", "Y"].map(
+              (letter, index) => (
               <span className={`title-letter letter-${index}`} key={index}>
                 {letter}
               </span>
