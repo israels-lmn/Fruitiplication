@@ -186,8 +186,8 @@ export function MainPage() {
   const [revealedByTable, setRevealedByTable] = useState<
     Record<number, Record<number, boolean>>
   >({});
-  const [productRowByTable, setProductRowByTable] = useState<
-    Record<number, number>
+  const [productByTable, setProductByTable] = useState<
+    Record<number, Record<number, boolean>>
   >({});
   const [tooltipRowByTable, setTooltipRowByTable] = useState<
     Record<number, number>
@@ -200,6 +200,12 @@ export function MainPage() {
   const [showOptions, setShowOptions] = useState(false);
   const [externalMenuActive, setExternalMenuActive] = useState(false);
   const [externalOptions, setExternalOptions] = useState<number[]>([]);
+  const [completedRowsByTable, setCompletedRowsByTable] = useState<
+    Record<number, Record<number, boolean>>
+  >({});
+  const [maxRowReachedByTable, setMaxRowReachedByTable] = useState<
+    Record<number, number>
+  >({});
   const [swapOrder, setSwapOrder] = useState(false);
   const [closeFlash, setCloseFlash] = useState(false);
   const [fruitySpeech, setFruitySpeech] = useState("");
@@ -214,7 +220,7 @@ export function MainPage() {
     Record<number, number>
   >({});
   const [equalsSpokenByTable, setEqualsSpokenByTable] = useState<
-    Record<number, number>
+    Record<number, Record<number, boolean>>
   >({});
   const [optionsMenuStyle, setOptionsMenuStyle] = useState<
     React.CSSProperties | undefined
@@ -319,6 +325,37 @@ export function MainPage() {
   useEffect(() => {
     currentRowRef.current = currentRow;
   }, [currentRow]);
+
+  useEffect(() => {
+    if (mode !== "practice" || activeTable === null) {
+      return;
+    }
+    if (currentRow <= 1) {
+      return;
+    }
+    setMaxRowReachedByTable((prev) => {
+      const currentMax = prev[activeTable] ?? 1;
+      const nextMax = Math.max(currentMax, Math.min(currentRow, 10));
+      if (nextMax === currentMax) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [activeTable]: nextMax
+      };
+    });
+    setCompletedRowsByTable((prev) => {
+      const tableRows = { ...(prev[activeTable] ?? {}) };
+      const maxRow = Math.min(currentRow - 1, 10);
+      for (let row = 1; row <= maxRow; row += 1) {
+        tableRows[row] = true;
+      }
+      return {
+        ...prev,
+        [activeTable]: tableRows
+      };
+    });
+  }, [activeTable, currentRow, mode]);
 
   useEffect(() => {
     showOptionsRef.current = showOptions;
@@ -516,6 +553,8 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
+    setMaxRowReachedByTable({});
     setSwapOrder(false);
     setMode("study");
   };
@@ -527,6 +566,8 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
+    setMaxRowReachedByTable({});
     setSwapOrder(false);
     setMode("study");
   };
@@ -537,6 +578,8 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
+    setMaxRowReachedByTable({});
     clearRevealed();
   };
 
@@ -554,6 +597,8 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
+    setMaxRowReachedByTable({});
     clearRevealed();
   };
 
@@ -574,6 +619,8 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
+    setMaxRowReachedByTable({});
     clearRevealed();
   };
 
@@ -584,6 +631,8 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
+    setMaxRowReachedByTable({});
   };
 
   const clearInput = () => {
@@ -875,7 +924,7 @@ export function MainPage() {
     setAllowEqualsByTable({});
     setLastSpokenRowByTable({});
     setEqualsSpokenByTable({});
-    setProductRowByTable({});
+    setProductByTable({});
     setTooltipRowByTable({});
     setEqualsTooltipRowByTable({});
     lastSpokenRef.current = null;
@@ -904,15 +953,7 @@ export function MainPage() {
     if (revealTimerRef.current) {
       clearInterval(revealTimerRef.current);
     }
-    setRevealedByTable((prev) => ({
-      ...prev,
-      [tableValue]: {}
-    }));
     setAllowEqualsByTable((prev) => ({
-      ...prev,
-      [tableValue]: 0
-    }));
-    setProductRowByTable((prev) => ({
       ...prev,
       [tableValue]: 0
     }));
@@ -957,7 +998,7 @@ export function MainPage() {
           [tableValue]: upToRow
         }));
       }
-    }, 20);
+    }, 12);
   };
 
   const pickYoungFemaleVoice = () => {
@@ -994,7 +1035,7 @@ export function MainPage() {
     if (voice) {
       utterance.voice = voice;
     }
-    utterance.rate = 0.95;
+    utterance.rate = 1.15;
     utterance.pitch = 1.25;
     if (onStart) {
       utterance.onstart = onStart;
@@ -1029,8 +1070,8 @@ export function MainPage() {
       first.voice = voice;
       second.voice = voice;
     }
-    first.rate = 0.95;
-    second.rate = 0.95;
+    first.rate = 1.15;
+    second.rate = 1.15;
     first.pitch = 1.25;
     second.pitch = 1.25;
     if (onStart) {
@@ -1099,6 +1140,29 @@ export function MainPage() {
       finalKudosMessages[
         Math.floor(Math.random() * finalKudosMessages.length)
       ];
+    if (activeTable !== null) {
+      setCompletedRowsByTable((prev) => ({
+        ...prev,
+        [activeTable]: {
+          ...(prev[activeTable] ?? {}),
+          [currentRow]: true
+        }
+      }));
+      setMaxRowReachedByTable((prev) => {
+        const currentMax = prev[activeTable] ?? 1;
+        const nextMax = Math.max(
+          currentMax,
+          Math.min(currentRow + 1, 10)
+        );
+        if (nextMax === currentMax) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [activeTable]: nextMax
+        };
+      });
+    }
     setKudosByRow((prev) => ({
       ...prev,
       [currentRow]: currentRow >= 10 ? finalMessage : message
@@ -1179,9 +1243,16 @@ export function MainPage() {
       const answer = multiplicand * fruit.value;
       const leftValue = swapOrder ? fruit.value : multiplicand;
       const rightValue = swapOrder ? multiplicand : fruit.value;
-      const isRowVisible = multiplicand <= Math.min(currentRow, 10);
+      const completedRows = completedRowsByTable[fruit.value] ?? {};
+      const maxReached = maxRowReachedByTable[fruit.value] ?? currentRow;
+      const visibleLimit = Math.max(Math.min(currentRow, 10), maxReached);
+      const isRowVisible =
+        multiplicand <= visibleLimit || Boolean(completedRows[multiplicand]);
       const isActiveRow = multiplicand === currentRow && !isComplete;
-      const isCompleteRow = multiplicand < currentRow || isComplete;
+      const isCompleteRow =
+        Boolean(completedRows[multiplicand]) ||
+        multiplicand < maxReached ||
+        isComplete;
       const rowKudos = kudosByRow[multiplicand];
       const isFinalRow = multiplicand === 10;
       const showFinalKudos =
@@ -1363,12 +1434,10 @@ export function MainPage() {
       )}`;
       const equalsPhrase = `equals ${answerText}`;
       const isEqualsAllowed =
-        (allowEqualsByTable[fruit.value] ?? 0) >= multiplicand &&
+        (allowEqualsByTable[fruit.value] ?? 0) === multiplicand &&
         (lastSpokenRowByTable[fruit.value] ?? 0) === multiplicand;
-      const isProductVisible =
-        (productRowByTable[fruit.value] ?? 0) === multiplicand;
-      const isLastRowComplete =
-        (productRowByTable[fruit.value] ?? 0) >= 10;
+      const equalsSpokenRows = equalsSpokenByTable[fruit.value] ?? {};
+      const isProductVisible = Boolean(equalsSpokenRows[multiplicand]);
       const showTooltips =
         (tooltipRowByTable[fruit.value] ?? 0) === multiplicand;
       const showEqualsTooltip =
@@ -1392,6 +1461,13 @@ export function MainPage() {
                     ...prev,
                     [fruit.value]: multiplicand
                   }));
+                  setEqualsSpokenByTable((prev) => ({
+                    ...prev,
+                    [fruit.value]: {
+                      ...(prev[fruit.value] ?? {}),
+                      [multiplicand]: false
+                    }
+                  }));
                   setRevealedByTable((prev) => ({
                     ...prev,
                     [fruit.value]: {}
@@ -1409,12 +1485,15 @@ export function MainPage() {
                   }
                   setTimeout(() => {
                     revealUpToRow(fruit.value, multiplicand);
-                  }, 150);
+                  }, 80);
                 },
                 () => {
-                  setProductRowByTable((prev) => ({
+                  setProductByTable((prev) => ({
                     ...prev,
-                    [fruit.value]: multiplicand
+                    [fruit.value]: {
+                      ...(prev[fruit.value] ?? {}),
+                      [multiplicand]: true
+                    }
                   }));
                   setEqualsTooltipRowByTable((prev) => ({
                     ...prev,
@@ -1422,7 +1501,10 @@ export function MainPage() {
                   }));
                   setEqualsSpokenByTable((prev) => ({
                     ...prev,
-                    [fruit.value]: multiplicand
+                    [fruit.value]: {
+                      ...(prev[fruit.value] ?? {}),
+                      [multiplicand]: true
+                    }
                   }));
                   tooltipTimerRef.current = setTimeout(() => {
                     setTooltipRowByTable((prev) => ({
@@ -1482,25 +1564,19 @@ export function MainPage() {
               }`}
               data-word={`equals ${answerText}`}
               onMouseLeave={() => {
-                const spokenRow = equalsSpokenByTable[fruit.value] ?? 0;
-                if (spokenRow === multiplicand) {
-                  setRevealedByTable((prev) => ({
-                    ...prev,
-                    [fruit.value]: {}
-                  }));
-                  setAllowEqualsByTable((prev) => ({
-                    ...prev,
-                    [fruit.value]: 0
-                  }));
-                  setLastSpokenRowByTable((prev) => ({
-                    ...prev,
-                    [fruit.value]: 0
-                  }));
-                  setEqualsSpokenByTable((prev) => ({
-                    ...prev,
-                    [fruit.value]: 0
-                  }));
+                const spokenRow =
+                  equalsSpokenByTable[fruit.value]?.[multiplicand];
+                if (!spokenRow) {
+                  return;
                 }
+                setAllowEqualsByTable((prev) => ({
+                  ...prev,
+                  [fruit.value]: 0
+                }));
+                setLastSpokenRowByTable((prev) => ({
+                  ...prev,
+                  [fruit.value]: 0
+                }));
               }}
             >
               =
@@ -1530,6 +1606,7 @@ export function MainPage() {
     setFeedback(null);
     setCompletionMessage(null);
     setKudosByRow({});
+    setCompletedRowsByTable({});
     setShowOptions(false);
     setExternalMenuActive(false);
     setExternalOptions([]);
@@ -1756,7 +1833,7 @@ export function MainPage() {
                     type="button"
                     onClick={clearRevealed}
                   >
-                    Refresh
+                    Restart
                   </button>
                 )}
                 {mode === "study" ? (
@@ -1830,15 +1907,17 @@ export function MainPage() {
                   <span className="instruction-label">Instructions:</span> Click
                   each left-hand-side of equations below, one at a time (touch
                   or tap on an IPAD, tablet, or a smartphone), then listen to
-                  Trudy and repeat after her. (Keep in mind that hearing
-                  yourself say it will help you remember it better!) When you
+                  Trudy and repeat after her. (Hearing yourself say it will help
+                  you remember it better!) When you
                   have completed the exercise, click "Quiz yourself" at the
                   bottom of the page.
                 </p>
                 <div className="table-card table-card-large overlay-table study-table">
                   {renderStaticRows(activeFruit)}
                 </div>
-                {(productRowByTable[activeFruit.value] ?? 0) >= 10 ? (
+                {Object.values(productByTable[activeFruit.value] ?? {}).filter(
+                  Boolean
+                ).length >= 10 ? (
                   <button
                     className="quiz-link"
                     type="button"
